@@ -1,5 +1,7 @@
+####____LIBRARIRES____####
 library(tidyverse)
 library(data.table)
+####____TOY DATA____####
 df <- data.frame(dates = seq.Date(as.Date("2021-01-01"),as.Date("2022-12-01"),by = "month"),
                  number = seq(10,30,length.out=24),
                  cat = sample(c("1. Soñar","2. Jürgen","3. Adición"),size = 24,replace = TRUE),
