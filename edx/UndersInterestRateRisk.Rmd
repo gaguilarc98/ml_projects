@@ -1,0 +1,182 @@
+---
+title: "UndersInterestRateRisk"
+author: "GAguilar"
+date: "2023-09-10"
+output: html_document
+---
+# MODULE 2: Understanding Interest Rate
+
+## Interest Rate Risk in banking & trading book
+
+As a general principle, market interest rate and bond prices move in oppoosite directions, but why it happens?
+
+***Interest risk is the risk that arises when rates fluctuate.***
+
+For a bank or an EIF, interest rate risk rises when changes in the market interest rate affect their financial position.
+Interest rate risk is split into:
+
+* **Traded interest risk**. That is interest rate risk in bank's trading book
+* **Non-traded interest risk**. Interest rate risk banking book.
+
+## Banking bokk and traiding book
+
+Assets (activos) and liabilities (pasivos) in the balance sheet of a bank can be grouped as Banking Book and Trading Book.
+
+The banking book refers to the assets & liabilities that are expected to be held to maturity. Consists of all types of loans deposits & borrowings.
+The banking book can also include investments that are meant to hold till maturity and derivatives that are used to hedge (coberturar) exposures arising from them.
+
+## Impact of interest rate in banking book
+
+Due to changes in IR the present value of future cash flow changes, and therefore, the value of assets, liabilities and off-balance sheet items undergoes a change.
+
+The changes in IR also impact the banks' earnings by altering interest rate-sensitive incomeand expenses, then the Net Interest Income (NII).
+
+**Trading book**. Banks undergo transactions with the intention to benefit in the short term with the difference between buying and selling. This results in market exposure. These transactions are refelcted in trading book, this consists of:
+* Intstruments covering debt, income securities, equities, foregin exchange, commodities, derivatives held for trading. **THESE ARE NOT GENERALLY HELD TILL MATURITY** and are disposed before maturit.
+
+This book is further divided into: Available For Sale (AFS) and Held For Trade (HFT).
+
+The trading book is affected by mark to market, which is a measure of fair value of the security based on current price. The source of change is the prevailing rate of interest in the market. As interest rate increases, the price of securities (valores) depreciates and viceversa.
+
+It has impact on bank's profit and loss position as loss provisions are required to be created where market value is lower than book value.
+
+**Interest rate in trading book is mostly associated with fixed-income assets like bonds rather than with equity investments**. 
+
+## Interest Rate Risk Drivers and Impact
+
+IRR refers to fluctuations in a bank's net interest income and the value of its assets and liabilities arising fron internal and external factors:
+
+* Composition of the Bank's assets and liabilites
+* Maturity of cash flows
+* Interest Rate
+* Re-pricing period of deposits, borrowings, loans and investments
+* Regulatory, Market and General economic conditions
+These can be further classified into:
+  * Basis risk
+  * Embedded option risk
+  * Repricing risk
+  * Yield curve risk
+
+## Basis risk
+Arises when interest rate of asserts and liabilites do not change in the same magnitude
+
+## Embedded option risk
+Arises due to premature withdrawal (retiro) of deposits or prepayment of loans.
+
+##Repricing risk
+Arises due to timing differences in the maturity, repricing of banks assets and liabilities.
+
+Example when funding a long-term loan with a short-term deposit may face a reduction in the future income due to uncertainty in the position.
+
+##Yield curve risk
+The graph that plots the maturity on X-axis and yield on Y-axis is called a yield curve. This risk arises from non-parallel shifts in the yield curve.
+
+##Parallel shift
+It is a global shift in the yield for all maturities.
+
+##Non-parallel shift
+It is a shift in the yield that depends on the term of the maturity (e.g. 50 basic points for 5 year and  30 bps for 10 year)
+
+Bond portfolios have different risk exposures per yield curve shifts and this is called yield curve risk.
+
+## Impact of interest rate risk
+The impacts are:
+- Net Interest Income (NII) can change on account of different repricing date for assets and liabilities:
+ 
+* **Scenario 1 Rising interest scenario**. NII will increase if assets are repriced faster than liabilities and decrease if liabilities are repriced faster.
+* **Scenario 2 Falling interest scenario**. NII will decrease if assets are repriced faster than liabilities and increase if liabilites are repriced faster.
+
+- Changes in provision for depreciation of Investment Portfolio held "Available for sale" and "Held for trading"
+
+- Changes in market value of equity (capital and reserves) on account of value of assets and liabilites.
+
+
+# Overview of bonds
+
+## Bond market
+Banks receives deposits from the public and uses either in lending or investing. 
+
+Regulators require banks to invest a specified percentage of their demand and time liabilities in securities issued by government.
+
+Globalization, liberalization and deregulation have formed an evolved worldwide bond market.
+
+This has enhanced the importance of investments in the balance sheets of banks and is an **alternative to credit**.
+
+Since bonds are tradable they offer interest spread and capital appreciation.
+
+**Bond market** is a market place where trades in debt securities take place. It refers to buying and selling debt instruments issued by various entities. Corporations and governments issue bonds to rais ecapital to fund operations.
+
+It is also known as **credit or fixed income market**. They are classified broadly in:
+
+* New bonds issued in primary market  to roll out new debt and these are traded in the secondary market. Bonds are generally issued by municipalities, companies, states and national governments.
+
+## Bond
+
+A bond is an instrument of indebtedness, purchased for the face value and returned at the end of a set period of time.
+
+Individual bond purchasers have legal and financial claims against a company's debt. The issuer has the obligation to pay the **principal amount** and the agrred interest when the bond reaches maturity. The promised interest rate are usually payed at fixed intervals.
+
+Bonds are mostly bought and traded by central banks, pension funds or hedge funds.
+
+Bond prices are very sensitive to interest rate changes and **their price changes inversely to interest rate moves**.
+
+## Features of a bond
+
+* Face value/ par value/ nominal value.
+
+Principal amount of a single unit of a bond. Issuers are generally under a legal obligation  to return the value to the investor after a period. **the face value is different form its market value**.
+
+* Tenure & maturity date
+
+Refers to the maturity period. Date on which principal has to be repaid to the investor. It is possible to sell a bond in the open market before maturity date. 
+
+* Coupon
+
+It is the return the issuer commits to pay periodically to the investor during the tenure of the bond.
+
+A fixed coupon bond offers steady coupon rates.
+
+Bonds with floating rate have variable coupon rates that fluctuate with the market and are elastic over time.
+
+Zero-coupon bonds do not pay interest. They are issued at a discount (se otorgan por menos valor del principal) and that discount implies the interest.
+
+* Yield
+
+Overall return to the investor. For this we have:
+  * Nominal yield Annual interest rate specified in the bond irrespective of the price to purchase the bond.
+  * Current yield. Effective yield an investor earns on the current market price of the bond. It is calculated dividing the annual coupon payment by the bond's current market value.
+  
+  Example. A 7% annual coupon bond with face vvalue 1000. It gives an annual interest income of: 1000*7% = 70. If we get to buy that coupon at a discount of 900 the current yield is 70/900 = 7.78%.
+  
+  The 70 in annual interest is fixed regardless of the price paid. If instead the investor purchases the bond for 1100 the current yield is 70/1100 = 6.45%.
+  
+* Yield to maturity.
+The yield on the security if it is held till redemption. As the bonds are traded in the market they are purchased in current market price.
+
+YTM assumes that the bond has been purchased at the current market price and it is held till end of its maturity period and all interest an coupon payments are made as promised.
+
+It is a discount rate that equates the present value of all future cash flows.
+
+YTM = C+[(FV-PV)/n]/(FV+PV)/2
+
+Where FV: Face value, PV: Present(purchase) value, n the number of years, C: Interest income in a single year.
+
+So if the purchase value increases the YTM decreases and viceversa. If the PV is higher is called **premium**
+## Government bond & corporate bond
+
+Sovereign bonds are issued for raising capital to fund infrastructural improvements or to pay back debts. It is a tradable instrument. It acknoledges the governments debt obligation. 
+
+They can be short-term (treasury bills and maturity less than a year) or long-term (government bonds with maturity more than a year). These are used to compare other bonds to measure credit risk.
+
+* Corporate bond
+Issued by corporates. Raise fund for a wide variety of pueposes: new equipment, investing in research and maintaining operations. They are classified as: investment-grade or non-investment grade.
+
+* Treasury bills
+T-bills is a short term government debt obligation backed by the Treasury Department.
+
+T-bills are issued for maturities of just a few days up to maximum of 52 weeks. They can be purchased directly from the government or in the secondary market.
+
+They are issued at a discount from the par value. That is the purchases price is less that the face value.
+
+T-bills are generally considered one of the safest investments, but it comes at a cost. They have a fixed rate of interest (stable income), but when interest rates rise, existing T-bills fall out of favor as their rates are now less attractive compared to the overall market.
+

@@ -1,0 +1,241 @@
+---
+title: "InterestRate"
+author: "GAguilar"
+date: "2023-09-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+The course is provided by State Bank Academy located in India.They offers training in credit, compliance, risk management, international banking and retail banking space. The topics include:
+
+* Market risk management
+* Risk of loss of current and future income
+* Risk of erosion in the values of assets
+* Liability of interest rates
+
+The short term impact of fluctuations in interest rates is on earnings and the long term impact is on the market value of equity or net worth.
+
+## Module I. Understanding risk
+
+This module deals with the concept of **risk**, its different types and **risk management** process.
+
+Uncertainty and probability are two components of risk. Risk is formed when an action is performed. Uncertainty of deviation from the expected value gives birth to risk. When uncertainty is translated into probability or loss is called risk. Hence
+
+*Risk is a mapping of uncertainty into probability and loss*
+
+So uncertainty can be classified into two categories:
+* When it brings _positive_ effects is called opportunity,gain or reward.
+* When it brings _negative_ effects is called risk.
+* When it does not bring any effect is a non-risk.
+
+***Risk is an uncertain adverse result/impact of any event***
+
+Risk needs two ingredients:
+1. Uncertainty about the potential outcomes.
+2. The outcome must matter in terms of utility.
+
+### Relationship between risk and reward
+
+Generally speaking, more risk may lead to more reward. However it is not always true. The actual trade-off is between risk and expected return, not actual return. So it leads to an optimization of the risk reward ratio. The leading factors usually are: *investor risk appetite*, *investment duration* and *potential to replace funds*
+
+___
+
+## Risk classification
+
+These can be classified:
+* According to overall impact:
+  * **Systematic** related to market uncertainty (external factor) that may impact the outcome
+  * **Unsystematic** specific to each asset.
+* According to level of impact:
+  * **Financial** impact directly into financial loss.
+  * **Non-financial** indirect bearing on financial loss.
+
+## Types of risks
+
+* Credit risk. It arises if borrowers or counterparts fail to meet their obligations.
+
+* Market risk. Losing value arising out of adverse price movements of equities, interest rates, credit spreads, commodities.
+
+* Liquidity risk. Not being able to meet its collateral and cash obligations at a reasonable cost. It may also arise for losses when certain assets cannot be traded without significantly impacting its market price.
+
+* Model risk. Wrong assumptions and algorithms used in models that may result into significant financial losses.
+
+* Operational risk. Losses due to failed or inadequate internal processes, people and systems or external events.
+
+* Conduct risk. Loss due to inaccurate or wrong management choices or decisions.
+
+* Reputation risk. Intangible asset assessed by the generation of trust and business more profitably. Negative publicity may result into reputational risk.
+
+* Systemic risk. Since financial institutions are so connected, the failure of one has the possibility to cause failure of others. Banks and EIF's are counterparts to each other in a lot of transactions this connectedness results into systemic risk.
+
+## Risk-Return
+
+Risk is associated with something wrong to avoid. But risk also creates opportunity and possibility of positive outcomes (*reward*).
+
+Risk-return defines the relationship between the risk and the potential to earn returns. They are expected to be inversely correlated and move by drag.
+
+Higher risk does not imply higher returns, it only implies higher likelihodd of generating higher returns. Minimum return is the one in a **free-risk** environment which is the baseline for comparing when taking more risk.
+
+___
+
+## Risk management
+
+Due to liberalisation, deregulation and increased competition, banks have been exposed to various types os risks. The process of risk management is complex and sophisticated models are needed for analyzing and evaluating risks.
+
+Associated to RM are the terms int eh acronym VUCA:
+
+* Volatility. Unexpected rapid change and unpredictable in nature.
+* Uncertainty. Due to **lack of information**.
+* Complexity. **Interconnected factors** may cause potential chaos.
+* Ambiguity. Area of **unknown**, lack of clarity to even find the causal factors.
+
+### Risk management process
+
+It consists of:
+
+1. Identify
+1. Assess
+1. Measure
+1. Monitor & report
+1. Improve the control
+1. Implement the action points
+
+This process is continuous and cycle-repetitive. It needs to evolve along with changes, so it is not a one time process rather **proactive**.
+
+***Risk management implies minimizing the impact of risks***
+ It involves SWOT analysis (Strengths, Weaknesses, Opportunities and Threats). Maximize the strength, capitalize the opportunity, minimize the threats and weaknesses.
+ 
+### Sources of risk
+
+They are the cause of risk (not the risk itself): legal abilities, technology issues, strategic errors, climate change and natural disasters.
+
+**Objective of RM*. A bank and a EIF aims to provide services to its customers and earn a return.
+
+To achieve this, strategies are translated into policies, frameworks and manuals.
+
+RM is supposed to identify risks that may be overlooked at an early stage and re the reducing the effect of these threats to business. RM can reduce the cost of funds and *financial distress*. It helps reduce the conflict between shareholders and lenders and increases confidence of stakeholders. A bansk should be able to manage multiple risks while dealing with upcoming regulation.
+___
+ 
+# Part II. Interest Rate Concept.
+
+Interst rate denotes the **cost of borrowing** and is usually shown as a percentage of amount borrowed:
+
+* For depositors represents how much money will receive from banks or EIF as a portion of the deposits.
+
+Change on interest rates has impact on earnings and price, hence the importance of tracking its change.
+
+1. Fixed interest rate. If IR on an investment ir borrowing is fixed for the whole period is called **fixed**.
+
+1. Variables interest rate. It is the opposite of fixed, it changes over time, generally linked to a benchmark rate and moves up or down with the benchmark rate.
+
+1. Annual percentage rate. Popular in credit-card companies. Annual rate calcualted as daily.
+
+1. Coupon rate. Specific to debt instruments. Is the nominal interest that bond issuer promises to pay to the bond holder.
+
+1. Required Rate of Return (RRR). It is the rate that investor should receive on a security considering different riskr associated with the security.
+
+The fair value of security follows from required rate of return.  If the market values is less than the fair value RRR is used to get at the fair value.
+
+1. Expected Rate of Return (ERR) Is the expected rate by a market participant when purchasing a security. If ERR is greater than the RRR, the investor will be interested to buy it. ERR is a **doscount rate** used to calculate the return on the security at a given price.
+
+If the fair value is less than the market price it is said to be **overvalued**. If the opposite occurs it is **undervalue** and this should attract investors.
+
+1. Realized Rate of Return. Is the actual rate of return on an investment is the **discount rate** which equates the purchase price of ac security to the present value of the cash flow.
+
+## Determinants of market prevailing IR and real IR
+
+The factors which differentiate IR across market are:
+
+* Inflation. It is usually a positive relationship between inflation and IR.
+
+* Real interest rate. Is the adjustment of nominal IR by inflation rate. The higher the preference to consume today the higher the IR will be.
+
+RIR = NIR - InflationRate
+
+* Default risk. Is the reisk that the borrower of security will default on payment to the buyer. The **higher the Default Risk the higher the IR**.
+
+DefaultRiskPremium = ROA - ROFA
+
+where ROA: Return on Asset and ROFA: Return on Risk-Free Asset.
+
+* Liquidity risk. Risk that a security cannot be sold when required with low transaction cost. 
+
+## Time value of money
+
+1. Money received today is worth more than the money received at a future date. The reason is that the money received today may be invested till the future date and returns can be generated.
+
+1. It also implies compounding as the interest earned will be reinvested as soon as it is earned. **Comounding** increases the return of the investor than simple interest return.
+
+1. It is widely used in valuation of financial instruments, critical for traders. It can be used to arrive at future value of cashflows earned over time.
+
+1. Financial decision making depends on the concept that the value of money does not remain the same over a period of time.
+
+1. Therefore the core is to be able to make **comparison** of cashflows including the time element in calculation.
+
+## BASIC CONCEPTS
+
+Time value of money is supported by:
+
+1. Uncertainty of future.
+1. Inflation which reduces the purchasing power of the money over a period of time.
+1. Reinvestment opportunity.
+
+FV = P(1+i)^n
+FV: future value, P:Principal, i: interest rate per unit, n:number of years.
+So even if uncertainty and inflation is null, opportunity is always present. Interest rates are assumed to be postive
+
+If we want to calculate the **present value** of money received in the future we use the formula:
+
+PV = FV/(1+i)^n
+
+## Loanable funds. 
+
+These are available for borrowing and consist of household savings and/or bank loans, the demand comes from:
+
+* Government business
+* Consumers
+* Foreign participant
+
+The demand for loanable funds are interest elastic. Tendency to borrow goes up at a lower rate of interest.
+The lower the interest rate, the greater the amount of borrowing. The supply comes from:
+
+* Savings
+* Dis hoarding
+* Foregin investors
+* Bank credit
+
+When given an income level, it is interest elastic. Loanable funds increases if the interest rate increases.
+
+Interest rate works as price in the market, where the commodity exchanged is money.
+
+## Equilibrium interest rate (EIR)
+
+It is determined in the loanable funds market (constituted from all lenders and borrowers). The EIR is determined by supply and demand.
+The demand curve for loanable funds slopes downwards, while the supply for loanable funds slopes upwards as a function of amount of funds. The intersection of these curves determines the equilibrium.
+
+* Supply interest rate also depends on the risk of securities (where securities are financial instruments that evidences debt). When risk of securities increases **interest** of investors decreases, but **interest rates** increases.
+* Central banks and monetary authorities can change availability of funds. When the supply of loanable funds increases, the supply curve shifts down and the interest falls, when the supply funds are restricted, the supply curve shifts upward and interest rate rises.
+* The EIR is temporary and shifts according to the supply and demand curves.
+
+1. **Nominal interest**. It is the stated rate on which interest rate payments on any instrument are calculated.
+1. **Efective or compunding rate**. It is *interest on interest*. When the nominal interest rate produces interest in the long term that are capitalized to compute the nest interest.
+1. **Real interest rate**. It is nominal interest rate adjuested for inflation rate. It deducts the rate of inflation from the nominal IR.
+E.g. if the nominal IR is 6% and the inflation IR is 2% the real interest rate is 2%.
+
+## Term structure.
+This is a relationship between securities interest rate to maturity. It assumes all features of the security remain the same, except maturity. This results in a **yield curve** that is explained by:
+
+1. **Unbiased explanation theory**. The yield curve reflects the current expectation of future term rates. For example, when investing X amount in 3 years the expected return should be the same if we invest in a 3-year bond or in 3 successive 1-year bonds. If it is expected that future 1-year bond rate will increase, the yield curve will slope upward. If future 1-year rates are expected to remain constant, then the 1-year bond rate and 3-year bond rate will be the same. This theory says that the long-term interest rate are geometric average of current and future short term rates.
+
+1. **Liquidiy Premium theory**. This says that short term investment or security has less price risk and so less uncertainty than long-term security. The investor will prefer to invest long-term only if there is a compensation for undertaking increased risk (liquidity premium). The greater the risk, the longer the maturity and the greater the liquidity premium. This theory adds liquidity premium to geometric averages of current and future short-term rates.
+
+1. **Market segmentation theory**. This theory assumes each market segment has its own maturity preference and an investor will not prefer maturities other than its segment preferred maturity unless a maturity premium is paid.. 
+
+
+
+

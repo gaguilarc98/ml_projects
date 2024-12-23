@@ -1,0 +1,132 @@
+---
+title: "MLlib"
+author: "GAguilar"
+date: "2023-09-14"
+output: html_document
+---
+
+# Introducción a Databricks
+
+Aprendizaje automático con MLlibs
+Comprender Datanricks, su uso (notebooks y clusters) y funcionalidades claves.
+
+# Databricks
+
+Es una empresa que desarrolló una plataforma que provee un entorno para realizar analítica y AI. Se basa en la nube. Permite gestionar datos con plataforma de Delta Lake (combina data lake y data warehouse). Particiona los archivos compatibles con AWS, Azure o Google.
+
+* Ofrece soporte para múltiples casos.
+* Facilita la colaboración.
+* Procesamiento en tiempo real.
+* Facilita la puesta en producción de modelos en batch y endpoints.
+
+# Arquitecura de Databricks
+Basada en ApacheSpark. Optimizada en Spark, pero reconoce pandas Dataframes  o tibbles de R.
+ 
+* Permite pre-procesar datos en streaming y es rápido porque trabaja con data particionada.
+* Permite multilenguajes desde el mismo notebook.
+* Posee clusters de computación (de alta concurrencia cuando varios usuarios se conectan).
+* Cuenta integración con servicios en la nube y API REST para automatización.
+
+# Notebooks
+Similares a los jupyter notebooks. Consiste en celdas de código y texto.Es compatible con Python, R, Scala y SQL. En el mismo cuaderno se pueden integrar varios lenguajes de prorgramación.
+
+Permite el uso de **comandos mágicos** para facilitar el uso de varios lenguajes y funciones adicionales.
+
+# Clusters en Databricks
+
+Permiten el procesamiento paralelo y distrbuido (computadoras conectadas en serie). Estos pueden ser: temporales o permanentes y se puede establecer políticas de cluster (quién tiene acceso, quién enciende o apaga, etc.)
+
+Cuenta con clusters autoescalables y alta concurrencia y es posible integrarlos con bibiliotecas externas (la llamada a instalación de paquetes de la forma tradicional no funciona). Esto es porque la librería solo se instala en el nodo maestro y no en todos los nodos. Existe un **método específico** para instalar paquetes de manera distribuida.
+
+
+# Integración y aplicaciones
+
+Conexión con fuentes externas. Y herramientas adicionales:
+
+* MLflow (integracion continua de modelos).
+* Spark SQL (ingeniería de datos).
+* Streaming.
+* Análisis avanzado de datos (GraphX, MLlib)
+
+Spark Core API permite integrar con: R, Python, Scala, SQL y Java
+
+___
+
+# Aprendizaje automático con Spark
+
+Comprender pre-procesamiento de datos con Pyspark. Aprender técnicas existentes en PySaprk para la creación de modelos de aprendizaje automático. Como la data es particionada se deben modificar ligeramente los algritmos de ML.
+
+# Aprendizaje automático.
+
+MLlib es la librería de aprendizaje automático de Spark, PySpark es la API de Spark para Python. Con esta librería buscamos que la máquina aprenda patrones de datos existentes sin ser explícitamente programada para:
+
+* Predecir (clasificación y regresión).
+* Descubrir patrones.
+* Realizar recomendaciones con modelos de filtrado colaborativo.
+
+# Visualización de Datos
+
+Dado que los datos están distribuidos por su gran volumen, se puede traer a memoria aunque no es recomendable traer los datos crudos (con el comando collect()). 
+
+En su lugar se recomienda **crear agrupaciones** de datos. La mayoría de estas tareas se pueden realizar con la API de Pandas.
+
+# Flujo de aprendizaje automático
+
+Se debe dividir la data en training y testing. En Spark para el training:
+
+* Carga la data (DataFrame).
+* Transformer para extraer la data.
+* Estimator para entrenar el modelo (instancias solo declaradas no entrenadas). Cuando es entrenado con data de entrenamiento se convierte en transformador.
+* Evaluator.
+
+**Es decir, el estimador es solo una declaración del tratamiento de datos, pero no requiere de data. Cuando le llega la data se convierte en transformador.**
+Existen estimadores del pre-procesamiento de datos y del modelo com tal.
+
+Para el testing:
+* Load Data.
+* Extract Features.
+* Predict Using Model.
+* Evaluate.
+
+Los evaluadores tienen métricas que miden el desempeño del modelo para evitar el sobreajuste (accuracy, recall, precision, R^2, MAE, RMSE, etc)
+
+# Feature Transformers
+
+Las variables categóricas no se admiten, sino numéricas. Esto se logra a través de One-hot encoding. Este modelo debe ser entrenado.
+
+Los feature transformers pueden lidiar con variables categóricas con niveles variables. Para ello se puese recurrir a un Pipeline de entrenamiento (volver a entrenar si aparecen nuevas categorías) o si el modelo requiere correrse siempre (por ser crítico) se puede recurrir al Handling invalids que en caso de aparecer nuevas categorías las codifica como cero.
+
+# Clasificación regresión y clustering
+
+El Análisis de Componentes Principales puede ser un Feature Transformer, pero si se desea crear un índice puede ser visto como un modelo de ML en sí mismo. 
+Los tratamientos (feature transformers) más comunes:
+
+* Binarizer
+* String indexer
+* OneHotEncoider
+* VectorAssembler (junta varias variables en una sola columna en forma de vector/arreglo principalmente para las var. explicartivas)
+* Estimator
+
+# Pipelines de estimación y validación cruzada
+
+En PySpark se suelen crear pipelines para la estimación de modelos. Nos permiten incorporar todas las transfomaciones y estimaciones dentro de un solo flujo de datos.
+Así podemos optimizar hiperparámetros utilizando validación cruzada. Spark tiene lazy evaluation, solo se valúa ante una acción: vista, guardado o persistencia.
+
+Vista y guardado se explican por sí solos, la persistencia implica almacenarlo en el cluster.
+
+Pipeline with TrainData:
+* Clean
+* Normalize
+* Impute missing
+* Feature engineering
+...
+
+# Búsqueda de hiperparámetros y validación cruzada
+
+La **búsqueda de hiperparámetros** es el proceso de encontrar los valores óptimos de configuración de un modelo para maximizar su rendimiento.
+
+La **validación cruzada** es una técnica para evaluar el rendimiento de un modelo dividiendo los datos en múltiples subconjuntos entrenando/evaluando de manera rotativa.
+
+
+Antes de iniciar la clase encender el cluster para ganar tiempo. Correr .Includes/Classroom-Setup
+Al finalizar la clase ejecutar Classroom Cleanup

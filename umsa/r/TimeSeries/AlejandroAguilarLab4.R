@@ -1,0 +1,254 @@
+#####_____INSTALACION DE PAQUETES_____#####
+install.packages("forecast")
+install.packages("TSA")
+install.packages("urca")
+install.packages("ggplot2")
+install.packages("ggfortify")
+install.packages("tseries")
+install.packages("fUnitRoots")
+install.packages("readxl")
+#####_____CARGAR LIBRERIAS DE TRABAJO_____#####
+library(forecast)
+library(TSA)
+library(urca)
+library(tseries)
+library(fUnitRoots)
+library(ggplot2)
+library(ggfortify)
+library(readxl)
+library(lubridate)
+#####_____ESTABLECER EL DIRECTORIO DE TRABAJO_____#####
+workdir <- "/home/acga/Documents/Statistics/Time Series/"
+setwd(workdir)
+
+#####_____EJEMPLO AIR PASSENGERS____#####
+data(AirPassengers)
+AP <- AirPassengers
+plot(AP)
+#DESCOMPOSICION MODELO MULTIPLICATIVO
+decomposeAP <- decompose(AP,"multiplicative")
+autoplot(decomposeAP)
+autoplot(AirPassengers,ts.colour='red',ts.linetype='dashed')
+adf.test(AP)
+#CORRELOGRAMA
+autoplot(acf(AP,plot=FALSE))+labs(title="Correlograma de 
+AP desde 1949 a 1961")
+#DECLARACION DE LA BASE DE DATOS COMO SERIE DE TIEMPO
+tsData <- ts(AP,start=c(1949,1),frequency=12)
+tsData
+autoplot(tsData,frequency=12,xlab="Años",ylab="Volumen",main="Pasajeros")
+seasonplot(tsData, col=rainbow(12), year.labels=TRUE)
+#TRANSFORMACION POTENCIA DE BOX-JENKINS
+Pasajeroslog <- log(tsData) 
+plot(Pasajeroslog,xlab="Años",ylab="Volumen",type="o",main="Pasajeros"
+     ,col="darkred")
+#ESTACIONALIDAD CON OPERADOR REZAGO
+baseP<-diff(Pasajeroslog)
+autoplot(baseP, xlab="Años",ylab=" ",main="Primera diferencia en log 
+de Pasajeros")
+#PRUEBA DE DICKEY FULLER
+summary(ur.df(baseP, type = "none", selectlags = "AIC"))
+#PRUEBA DE RAIZ UNITARIA
+urkpssTest(tsData, type = c("tau"), lags = 
+             c("short"),use.lag = NULL, doplot = TRUE)
+tsstationary <- diff(tsData, differences=1)
+plot(tsstationary)
+#AUTOCORRELACION
+acf(tsData,lag.max=140)
+#GRAFICO DE ESTACIONES
+ggseasonplot(tsData,polar=TRUE,main="Pasajeros" )
+
+timeseriesseasonallyadjusted <- tsData-decomposeAP$seasonal
+tsstationary <- diff(timeseriesseasonallyadjusted, 
+                     differences=1)
+plot(tsstationary)
+#AJUSTE DEL MODELO ARIMA
+auto.arima(tsData)
+auto.arima(tsData,seasonal=T,ic ="aic")
+auto.arima(tsData,seasonal=T,ic ="aic",trace=T)
+#AJUSTE DEL MODELO
+modeloAR <- auto.arima(tsData,
+                       seasonal=T, ic ="aic",
+                       trace=F,
+                       stepwise = FALSE,
+                       parallel=TRUE)
+summary(modeloAR)
+
+pronos <- forecast(modeloAR,h=12,level=95)
+autoplot(pronos) + theme_minimal()
+
+#####_____SERIES DE PRACTICA_____#####
+#####_____SENAMHI TEMPERATURA MINIMA_____#####
+dat <- read_excel("senamhi.xlsx")
+dat.ts <- ts(dat$Temp_min,start=2017,frequency = 365)
+#DESCOMPOSICION MODELO MULTIPLICATIVO
+decomposeAP <- decompose(dat.ts,"multiplicative")
+autoplot(decomposeAP)
+autoplot(dat.ts,ts.colour='red',ts.linetype='dashed')
+adf.test(dat.ts)
+#CORRELOGRAMA
+autoplot(acf(dat.ts,plot=FALSE))+labs(title="Correlograma de 
+Temp. min. desde 2017 a 2019")
+#DECLARACION DE LA BASE DE DATOS COMO SERIE DE TIEMPO
+autoplot(dat.ts,frequency=12,xlab="Tiempo",ylab="Temperatura [K]",main="Temperatura mínima")
+#ESTACIONALIDAD CON OPERADOR REZAGO
+baseP <- diff(dat.ts)
+autoplot(baseP, xlab="Años",ylab=" ",main="Primera diferencia en Temperatura mínima")
+#PRUEBA DE DICKEY FULLER
+summary(ur.df(baseP, type = "none", selectlags = "AIC"))
+#AUTOCORRELACION
+acf(baseP,lag.max=140)
+#GRAFICO DE ESTACIONES
+ggseasonplot(dat.ts,polar=TRUE,main="Pasajeros" )
+#AJUSTE DEL MODELO ARIMA
+auto.arima(baseP,seasonal=F,ic ="aic")
+#AJUSTE DEL MODELO
+modeloAR <- auto.arima(dat.ts,
+                       seasonal=F, ic ="aic",
+                       trace=F)
+summary(modeloAR)
+pronos <- forecast(modeloAR,h=12,level=95)
+autoplot(pronos) + theme_minimal()
+
+#####_____ELECTRICITY PRODUCTION IN AUSTRALIA____#####
+dat <- read_excel("electricity.xlsx")
+dat.ts <- ts(dat$Electricity,start=1956,frequency = 12)
+#DESCOMPOSICION MODELO MULTIPLICATIVO
+decomposeAP <- decompose(dat.ts,"multiplicative")
+autoplot(decomposeAP)
+autoplot(dat.ts,ts.colour='red',ts.linetype='dashed')
+adf.test(dat.ts)
+#CORRELOGRAMA
+autoplot(acf(dat.ts,plot=FALSE))+labs(title="Correlograma de 
+Producción de Electricidad desde 1956 a 1995")
+#DECLARACION DE LA BASE DE DATOS COMO SERIE DE TIEMPO
+autoplot(dat.ts,frequency=12,xlab="Tiempo",ylab="Produccion [kWh]",main="Produccion de Electricidad")
+seasonplot(dat.ts, col=rainbow(12), year.labels=TRUE)
+#TRANSFORMACION POTENCIA DE BOX-JENKINS
+dat.transf <-(dat.ts)^(1/4)
+plot(dat.transf,xlab="Tiempo",ylab="sqrt(Produccion)",main="Produccion de Electricidad"
+     ,col="darkred")
+#ESTACIONALIDAD CON OPERADOR REZAGO
+baseP <- diff(diff(dat.transf))
+autoplot(baseP, xlab="Años",ylab=" ",main="Primera diferencia en Temperatura mínima")
+#PRUEBA DE DICKEY FULLER
+summary(ur.df(baseP, type = "none", selectlags = "AIC"))
+#AUTOCORRELACION
+acf(baseP,lag.max=40)
+#GRAFICO DE ESTACIONES
+ggseasonplot(dat.ts,polar=TRUE,main="Pasajeros" )
+
+timeseriesseasonallyadjusted <- dat.ts-decomposeAP$seasonal
+tsstationary <- diff(timeseriesseasonallyadjusted, 
+                     differences=1)
+plot(tsstationary)
+#AJUSTE DEL MODELO ARIMA
+auto.arima(baseP,seasonal=T,ic ="aic",trace=F)
+#AJUSTE DEL MODELO
+modeloAR <- auto.arima(baseP,
+                       seasonal=T, ic ="aic",
+                       trace=F)
+summary(modeloAR)
+pronos <- forecast(modeloAR,h=12,level=95)
+autoplot(pronos) + theme_minimal()
+
+#####_____MLTOLLS STACK OVERFLOW_____#####
+dat <- read_excel("stack.xlsx")
+dat.ts <- ts(dat$r,start=2009,frequency = 12)
+#DESCOMPOSICION MODELO MULTIPLICATIVO
+decomposeAP <- decompose(dat.ts,"multiplicative")
+autoplot(decomposeAP)
+autoplot(dat.ts,ts.colour='red',ts.linetype='dashed')
+adf.test(dat.ts)
+#CORRELOGRAMA
+autoplot(acf(dat.ts,plot=FALSE))+labs(title="Correlograma de 
+preguntas sobre R desde 2009 a 2019")
+#DECLARACION DE LA BASE DE DATOS COMO SERIE DE TIEMPO
+autoplot(dat.ts,frequency=12,xlab="Tiempo",ylab="R clicks",main="Preguntas de R en StackOverflow")
+seasonplot(dat.ts, col=rainbow(12), year.labels=TRUE)
+#TRANSFORMACION POTENCIA DE BOX-JENKINS
+dat.transf <- (dat.ts)^(1/3)
+plot(dat.transf,xlab="Tiempo",ylab="sqrt(Produccion)",type="o",main="Preguntas de R en StackOverflow"
+     ,col="darkred")
+#ESTACIONALIDAD CON OPERADOR REZAGO
+baseP <- diff(dat.transf)
+autoplot(baseP, xlab="Años",ylab=" ",main="Primera diferencia en R clicks")
+#PRUEBA DE DICKEY FULLER
+summary(ur.df(baseP, type = "none", selectlags = "AIC"))
+#AUTOCORRELACION
+acf(baseP,lag.max=140)
+#GRAFICO DE ESTACIONES
+ggseasonplot(dat.ts,polar=TRUE,main="Pasajeros" )
+#AJUSTE DEL MODELO ARIMA
+auto.arima(baseP,seasonal=F,ic ="aic",trace=T)
+#AJUSTE DEL MODELO
+modeloAR <- auto.arima(baseP,
+                       seasonal=F, ic ="aic",
+                       trace=F)
+summary(modeloAR)
+pronos <- forecast(modeloAR,h=12,level=95)
+autoplot(pronos) + theme_minimal()
+
+#####_____INDICE DE CARGA ECONOMICA INE_____####
+dat <- read_excel("indice.xlsx")
+dat.ts <- ts(dat$ICE,start=decimal_date(as.Date(dat$Date[1])),
+             frequency = 12)
+#DESCOMPOSICION MODELO MULTIPLICATIVO
+decomposeAP <- decompose(dat.ts,"multiplicative")
+autoplot(decomposeAP)
+autoplot(dat.ts,ts.colour='red',ts.linetype='dashed')
+adf.test(dat.ts)
+#CORRELOGRAMA
+autoplot(acf(dat.ts,plot=FALSE))+labs(title="Correlograma de 
+ICE desde 2015 a 2020")
+#DECLARACION DE LA BASE DE DATOS COMO SERIE DE TIEMPO
+seasonplot(dat.ts, col=rainbow(12), year.labels=TRUE)
+#ESTACIONALIDAD CON OPERADOR REZAGO
+baseP <- diff(dat.ts)
+autoplot(baseP, xlab="Años",ylab=" ",main="ICE")
+#PRUEBA DE DICKEY FULLER
+summary(ur.df(baseP, type = "none", selectlags = "AIC"))
+#AUTOCORRELACION
+acf(baseP,lag.max=20)
+#GRAFICO DE ESTACIONES
+ggseasonplot(dat.ts,polar=TRUE,main="Pasajeros" )
+#AJUSTE DEL MODELO ARIMA
+auto.arima(baseP,seasonal=F,ic ="aic",trace=T)
+#AJUSTE DEL MODELO
+modeloAR <- auto.arima(baseP,
+                       seasonal=F, ic ="aic",
+                       trace=F)
+summary(modeloAR)
+pronos <- forecast(modeloAR,h=12,level=95)
+autoplot(pronos) + theme_minimal()
+
+#####_____YAHOO!_____####
+dat <- read_excel("yahoo.xlsx")
+dat.ts <- ts(dat$Close,start=decimal_date(as.Date(dat$Date[1])),
+             frequency = 365)
+#DESCOMPOSICION MODELO MULTIPLICATIVO
+decomposeAP <- decompose(dat.ts,"multiplicative")
+autoplot(decomposeAP)
+autoplot(dat.ts,ts.colour='red',ts.linetype='dashed')
+adf.test(dat.ts)
+#CORRELOGRAMA
+autoplot(acf(dat.ts,plot=FALSE))+labs(title="Correlograma de 
+Ventas de Yahoo! desde 2015 a 2020")
+#ESTACIONALIDAD CON OPERADOR REZAGO
+baseP <- diff(dat.transf)
+autoplot(baseP, xlab="Años",ylab=" ",main="ICE")
+#PRUEBA DE DICKEY FULLER
+summary(ur.df(baseP, type = "none", selectlags = "AIC"))
+#AUTOCORRELACION
+acf(baseP,lag.max=40)
+#GRAFICO DE ESTACIONES
+ggseasonplot(dat.ts,polar=TRUE,main="Pasajeros" )
+#AJUSTE DEL MODELO ARIMA
+auto.arima(baseP,seasonal=F,ic ="aic",trace=T)
+#AJUSTE DEL MODELO
+modeloAR <- auto.arima(baseP,
+                       seasonal=F, ic ="aic",
+                       trace=F)
+summary(modeloAR)
+pronos <- forecast(modeloAR,h=12,level=95)
+autoplot(pronos) + theme_minimal()

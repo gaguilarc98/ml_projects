@@ -1,0 +1,39 @@
+--QUERYING A DATABASE
+--__COUNT() to count all records with a filed value in a field
+SELECT COUNT(name) AS count_names
+FROM people;
+--__Counting multiple fields:
+SELECT COUNT(name) AS count_names, COUNT(date) AS count_dates
+FROM people;
+--__If we want to count all records in a table we use an *
+SELECT COUNT(*) AS total_records
+FROM people;
+--__DISTINCT returns the number od distinct values in a field. It is usual to combine COUNT() with distinct
+SELECT COUNT(DISTINCT date) AS count_distinct_dates
+FROM people;
+--__EXCEUTION in SQL is not linear.
+--__Knowing processing order is useful when debugging and aliasing fields and tables. First FROM, then SELECT and then the details
+--__Example: if we want to refer to an alias field it only makes sense to use after we know it has been processed.
+--DEBUGGING requires looking at the error messages closely. The most common errors are: Incorrect capitalization, misspelling, and mispunctuation
+--__We should have best practices guidelines when writing code. The semicolon at the end of each query is not necesary in postgreSQL but 
+--__some other flavors require it so it is a good habit to have. Also SQL is flexible with indentation and line spacing.
+--__Non standard field names: release year vs release_year we better use quotes to indicate that the white space is part of the name
+SELECT "release year" FROM cds
+--FILTERING
+--__For that purpose we use WHERE. We use WHERE with logical statements such as comparison operators: <, >, >=, <=, =, <>
+--__This last one is the symbol for not equal to in SQL.
+--Order of execution: FROM, WHERE, SELECT, LIMIT.
+--
+--
+--__SUMMARIZING DATA
+--__Aggregate functions to return a single value. COUNT() is such an aggregation function.
+--__Others include: AVG(), SUM(), MIN(), MAX()
+SELECT AVG(budget) AS avg_budget, MAX(budget) AS max_budget
+FROM films;
+--__Some of these can work with both numerical and non-numerical fields, only AVG and SUM work exclusively with numerical fields.
+--__The WHERE clause executes before SELECT.
+--__ROUND() has two parameters, the number we want to round and the decimal places we want to round to.
+--__It is possible to pass a negative number to ROUND and still get a result, ROUND(budget, -5) rounds five places to the left.
+--ARITHMETIC
+--__We can add, substract, multiply and divide with the symbols: +,-,*,/. SELECT (2+3) --Does not require parenthesis but is clearer
+--__However, when doing SELECT (4/3); gives result of 1 because SQL understand to get an integer out of two integers.

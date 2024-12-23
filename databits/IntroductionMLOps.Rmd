@@ -1,0 +1,138 @@
+---
+title: "Introduction to MLOps"
+author: "GAguilar"
+date: "2023-09-11"
+output: html_document
+---
+
+## Metodología de evaluación:
+* Proyecto práctico
+* Asistencia de 70% y puntaje mayor a 7 puntos
+* Certificado OpenBadge
+
+Coordinadora:
+Jhoselyn Centro de Operaciones de DataBits.
+Docente:
+Hugo Porras. 
+
+El banco tiene DataBricks pagado.
+
+## Introduction to Machine Learning Operations
+
+Comprender conceptos de MLOps, entender por qué es útil y aprender cómo se implementa.
+
+### Machine Learning
+
+Subcampo de la IA que le permitan a las máquinas a partir de datos sin ser explícitamente programadas. Estas tareas incluyen:
+
+* Predicción. Aprendizaje supervisado (existe variable objetivo o target). E.g. Predicción de default de un crédito en los primeros N meses.
+* Descubrimiento de patrones. Aprendizaje no supervisado (no existe variable objetivo o target). E.g. Agrupamiento por comportamiento de compras.
+
+(Existe el aprendizaje semisupervisado, cuando existe un fenómeno que se quiere predecir pero no se tiene la suficiente historia, para ello se crean muestras).
+
+Otro tipo de usos son: reconocimiento de imágenes, diagnóstico médico, traducción de lenguaje, reconocimiento de voz, recomendación de productos, detección de fraude.
+
+### Cómo se crean soluciones de ML
+
+Para ello se sugiere:
+
+1. **Identificar el problema** (y observar si es necesario ML para resolver el problema).
+1. Pasada la etapa anterior, se procede con la **recolección de datos** (por motivos de seguridad o disponibilidad puede no estar siempre disponible).
+1. Luego realizar **limpieza de datos** y validación de formato (manejo de datos duplicados, datos perdidos o duplicados y cuadre y lógica de datos).
+1. **Ingeniería de variables** y **procesamiento de datos**. Construcción de nuevas variables (transformar variables para que la predicción sea más precisa y alcance un nivel óptima).
+1. **Construcción de  modelos**. Definir los algoritmos y modelos a entrenar e identificar los hiperparámetros y si se requiere su optimización.
+1. **Entrenar, evaluar y validar** el modelo (que no exista sobre-ajuste en los datos; luego evaluar de acuerdo a una métrica pre-definida).
+
+El proceso debe considerar las decisiones de negocio, la exploración en ML, el desarrollo despliegue y mantenimiento del modelo (API si se corre en tiempo real, asegurar el flujo y tiempos de ejecución razonables).
+
+### Machine Learning Ops
+
+En esta etapa, el modelo escapa de las manos del equipo de Data Science. El **equipo de ingeniería** se encarga de integrar el modelo escogido en los sistemas. Se encargan de monitorear su desempeño o si necesita arreglos o actualizaciones.
+
+Se deben crear unidades de **gobierno de modelos**. Las instituciones pueden requrir revisión de modelos, pues influyen en decisiones que tratan con personas. El monitoreo debe ser capaz de identificar problemas en la etapa de **ingeniería de datos**, **desarrollo de modelo**, **despliegue**.
+
+### Machine Learning
+
+Es la intersección de ML y DevOps, el cual es un conjunto de prácticas que combina el software DEVelopment con los equipos de OPeracioneS. Monitorear un modelo es relativamente sencillo. Sin embargo, cuando se tienen varios modelos corriendo en simutáneo se requiere **automatizar** el ciclo de vida del modelo.
+
+En DataBricks se permite el versionamiento de tablas además de modelos.
+
+### Tipos de MLOps
+
+* Implementación manual. Todo se corre manualmente.
+* Entrega continua de modelos. Pipelines para la puesta en producción (reentrenamiento automático).
+* Integración y entrega continua de modelos. Pipelines para re-entrenamiento además cuenta con un ambiente de pruebas para testear el modelo.
+
+**La automatización tarda más tiempo antes de que sea eficiente**
+
+### Implementación manual.
+Script que ingresan al ambiente de producción (e.g. en SQL) y se entrena el modelo, se testea y se valida, con monitoreo manual de métricas.
+
+### Entrega continua de modelos.
+Se crean funciones y se va a un repositorio. Se crea una **tubería de despliegue** (en lugar de un script). En esta etapa se alojan los modelos con sus características y dependencias. Se crean **triggers** de acuerdo a los valores de una métrica. Cuando caiga el valor debajo de un threshold, se vuelve a entrenar, testear y validar. Luego se **registra** el modelo (repositorio de código).
+
+### Integración y entrega de 
+Antes del pipeline de despliegue se pasa por una **tubería de prueba**. Este paso precede a la puesta en producción.
+
+## Pipelines y automatización
+
+Tuberías, pipelines y flujos se refieren al mismo concepto. Un **pipeline** es un proceso secuencial que indica un flujo de información. El pipeline en la etapa de experimentación incluye:
+
+En MLOps sirven para automatizar el entrenamiento (tanto en el desarrollo como en el depliegue del modelo).
+
+El pipeline suele incluir
+* Selección de modelos.
+* Preprocesamiento de datos.
+* Proceso de entrenamiento.
+* Evlauación.
+* Validación.
+* Resumen.
+
+## Cómo luce el modelo
+
+* Selección de modelo (selección de features).
+* Preprocesamiento de datos (separación en training y testing).
+* Entrenamiento de modelo (con el training set).
+* Evaluación (con la data de test)
+* Validación del modelo (generalmente validación cruzada).
+
+## Implementación de MLOps
+El nivel de automatización con MLOps implica mayor esfuerzo (código extra). Registro de métricas, del modelo, construir pipelines, crear ambiente de pruebas, de producción (MLFlow).
+
+MLOps incialmente se implementa manualmente a corto plazo. Algunas herramientas tiene interfaz gráfica que facilita ciertos pasos (Databricks).
+
+
+# Frameworks de ML
+
+Un framework es un conjunto de herramientas de software que proporcionan un entorno para desarrollar, entrenar y desplegar modelos de ML.
+Proporciona una estructura organizada para la evaluación de modelos y optimización de hiperparámetros. Ofrece flexibilidad ycompatibilidad con variedad de lenguajes.
+
+Tensorflow (redes neuronales), Keras, Spark (Big Data y datos particionados en clusters de computadoras), Scikit-learn (clásico de Python con gran cantidad de modelos de ML), Gluon (para series de tiempo), H2O (deep-learning).
+# MLFlow
+
+Es una plataforma open-source para gestionar el ciclo de vida de un modelo es una API de MLOps. Permite hacer el seguimiento de modelos, reproducibilidad de resultados, compatibilidad del formato de los modelos.
+
+## Scikit-Learn y ML tradicional
+
+Open source con amplia variedad de algoritmos, obtiene herramientas para clasificación, regresión, clustering y recomendación.
+
+## Tensor-flow
+Enfocado al deep learnign es open-source y se integra con variedad de plataformas (Py, R, Javascript).
+
+## SparkMLlib
+
+ML a gran escala (big-data) Apache Spark fue desarrollado por la U de California Berkeley en 2009. Se ejecuta con varias computadoras (nodos) conectados a un nodo maestro o controlador. El Spark master envía instrucciones a los nodos, los cuales tienen sus propios recursos (disco, procesador, etc.). Para trabajar en Spark se debe abrir una sesión de Spark.
+
+Al final el resultado puede devolverse al controlador o guardarse en disco.
+
+## MLlib
+
+Librería de aprendizaje automático para grandes volúmenes de datos. Incluye clasificación, regresión y clustering.
+
+En pipelines:
+* Transformador.
+* Estimador. 
+
+# Scikit learn
+# Tensor-flow
+# Spark

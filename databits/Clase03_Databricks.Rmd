@@ -1,0 +1,64 @@
+---
+title: "Clase03Databricks"
+author: "GAguilar"
+date: "2023-09-14"
+output: html_document
+---
+
+Para iniciar el cluster ir al cuaderno creado, luego en la parte derecha connect conectar con algún cluster **creado con ML**, si no darle a create new y seleccionar un servidor de ML.
+
+# Databricks
+
+Transformadores para variables categóricas y numéricas.
+El mlflow.autolog(disable=True) no guarda las configuraciones.
+
+#Seleccionar 3 columnas distintas de las que están en el cuaderno y pasar a Whastapp
+
+La función randomSplit genera muestras de training y test, pero para ello primero ordena las particiones, lo cual puede ser contraproducente; por ello se crea la partición con números aleatorios 
+airbnbDF = airbnbDF.\
+  withColumn('u', f.rand(42)).\
+  withColumn('sample', f.expr('case when u>=0.7 then "test" else "train" end'))
+
+
+ft.VectorAssembler no necesita ser entrenado (no necesita ver la muestra) para saber que tiene que unir las columnas, es decir, es
+
+# One Hot Encoding
+
+Deja una categoría por fuera, y el tipo creado es disperso, es decir, como se crean muchos ceros, estos no se guardan para minimizar el espacio.
+
+# StandardScaling
+Restar media y dividir entre desv. estándar.
+Ante la presencia de datos atípicos (outliers), se puede estandarizar restando la mediana y dividir entre el rango intercuartílico con RobustScaler.
+
+# MinMaxScaler
+Permite reescalar entre 0 y 1. Resta el mínimo y divide entre el rango.
+
+#Bucketizer 
+Para categorizar una variable numérica con rangos.
+
+#QuantileDiscretizer
+Para categorizar una variable numérica con cuantiles.
+
+#Imputer
+Con mean, median o mode.
+
+# Binarizer
+Convierte en uno o cero con un threshold
+
+# PCA
+
+Reducción de la dimensionalidad de los datos reteniendo la mayor varianza a través de una combinación lineal de las variables originales.
+Las variables reducidas son ortogonales entre sí.
+
+# Polynomial expansion
+
+Expandir la variable a un polinomio de grado deseado
+
+# Selectores
+
+UnivariateFeatures de acuerdo a un test Chi2, ANOVA o F. Y selecciona las variables de acuerdo con:
+
+* numTopFeatures (las n primeras vars)
+* percentile (x% de variables)
+* fwe (with threshold of p-value)
+

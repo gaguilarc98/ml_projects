@@ -1,0 +1,10 @@
+####____BAYESIAN REGRESSION MODELING WITH rstanarm____####
+####____INTRODUCTION TO BAYESIAN MODELS____####
+library(broom)
+
+####____MODIFYING BAYESIAN MODELS____####
+
+####____ASSESSING BAYESIAN MODEL FIT____#####
+
+####____PRESENTING AND USING A BAYESIAN MODEL____####
+

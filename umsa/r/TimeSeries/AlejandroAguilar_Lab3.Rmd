@@ -1,0 +1,115 @@
+---
+title: "Laboratorio 3"
+author: "Alejandro Aguilar Corrales"
+date: "6/11/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## CODIGO DE CLASE
+```{r ejemplo}
+#####_____INSTALACION DE PAQUETES_____#####
+#install.packages("TTR")
+#install.packages("readxl")
+#install.packages("lubridate")
+#install.packages("forecast")
+#install.packages("ggplot2")
+#####_____CARGAR LIBRERIAS DE TRABAJO_____#####
+library(TTR)
+library(readxl)
+library(forecast)
+library(ggplot2)
+####AR(1)####
+x <- w <- rnorm(200)
+for(t in 2:200){
+  x[t] <- 0.6*x[t-1]+w[t]
+}
+plot(x,type="l")
+acf(x)
+pacf(x)
+####AR(2) SIMULADO####
+AR <- arima.sim(model = list(ar=c(0.6,-0.3)),n=100)
+acf(AR)
+####AR(2) ORIGINAL####
+ACF <- ARMAacf(ar=c(0.6,-0.3),lag.max = 20)
+plot(ACF[-1],x=1:20,type="h",xlab = "Rezago",ylab="ACF")
+abline(h=0)
+####AR(2)
+rho=NULL;phi1=0.6;phi2=0.3;max.lag=20
+rho1=phi1/(1-phi2);rho2=(phi1^2-phi2^2+phi2)/(1-phi2)
+rho[1]=rho1;rho[2]=rho2
+for (k in 3:max.lag) {
+  rho[k]=phi1*rho[k-1]+phi2*rho[k-2]
+}
+plot(y=rho,x=1:max.lag,type="h",ylab="ACF",
+     xlab="Rezago",ylim=c(-1,1))
+abline(h=0)
+```
+
+## MODELO ARIMA 1
+```{r ARIMA1}
+#####_____MODELOS ARIMA_____#####
+ar2.r <- arima.sim(model=list(ar=c(phi1,phi2)),n=100)
+fit <- arima(ar2.r,order = c(2,0,0))
+autoplot(fit)
+####phi1=-0.4,phi2=0.5
+phi1=-0.4;phi2=0.5;max.lag=20
+ar2.r <- arima.sim(model=list(ar=c(phi1,phi2)),n=100)
+fit <- arima(ar2.r,order = c(2,0,0))
+autoplot(fit)
+acf(ar2.r)
+```
+
+## MODELO ARIMA 2
+
+```{r ARIMA2}
+####1____phi1=1.2, phi2=-0.7
+phi1=1.2;phi2=-0.7;max.lag=20
+ar2.r <- arima.sim(model=list(ar=c(phi1,phi2)),n=100)
+fit <- arima(ar2.r,order = c(2,0,0))
+autoplot(fit,main="phi1=1.2, phi2=-0.7")
+plot1 <- acf(ar2.r,main="phi1=1.2, phi2=-0.7")
+```
+
+## MODELO ARIMA 3
+
+```{r ARIMA3}
+####2____phi1=-1,phi2=-0.6
+phi1=-1;phi2=-0.6;max.lag=20
+ar2.r <- arima.sim(model=list(ar=c(phi1,phi2)),n=100)
+fit <- arima(ar2.r,order = c(2,0,0))
+autoplot(fit,main="phi1=-1,phi2=-0.6")
+plot2 <- acf(ar2.r,main="phi1=-1,phi2=-0.6")
+```
+
+## MODELO ARIMA 4
+
+```{r ARIMA4}
+####3____phi1=0.5, phi2=-0.9
+phi1=0.5;phi2=-0.9;max.lag=20
+ar2.r <- arima.sim(model=list(ar=c(phi1,phi2)),n=100)
+fit <- arima(ar2.r,order = c(2,0,0))
+autoplot(fit,main="phi1=0.5, phi2=-0.9")
+plot3 <-acf(ar2.r,main="phi1=0.5, phi2=-0.9")
+```
+
+## MODELO ARIMA 5
+
+```{r ARIMA5}
+####4____phi=-0.5, phi2=-0.6
+phi1=-0.5;phi2=-0.6;max.lag=20
+ar2.r <- arima.sim(model=list(ar=c(phi1,phi2)),n=100)
+fit <- arima(ar2.r,order = c(2,0,0))
+autoplot(fit,main="phi=-0.5, phi2=-0.6")
+plot4 <- acf(ar2.r,main="phi=-0.5, phi2=-0.6")
+
+par(mfrow=c(2,2))
+plot(plot1,main="phi1=1.2, phi2=-0.7")
+plot(plot2,main="phi1=-1,phi2=-0.6")
+plot(plot3,main="phi1=0.5, phi2=-0.9")
+plot(plot4,main="phi=-0.5, phi2=-0.6")
+
+```

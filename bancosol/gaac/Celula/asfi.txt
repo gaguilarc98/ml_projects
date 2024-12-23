@@ -1,0 +1,154 @@
+file_path = "/Workspace/Users/gaguilarc@bancosol.com.bo/bases_auxiliares/cic_entidades.xlsx"
+ent = pd.read_excel(file_path, converters={"CodTipoEntidad":str, "NumCorrEntidad":str,"Sigla":str})
+ent["CodTipoEntidad"] = ent["CodTipoEntidad"].str.zfill(2)
+ent["NumCorrEntidad"] = ent["NumCorrEntidad"].str.zfill(3)
+ent
+
+%sql
+CREATE OR REPLACE TEMPORARY VIEW asfiOct AS(
+    SELECT *
+    FROM db_analytics.col_asficrd_v2
+    WHERE fechaReporte = "2021-10-31"::DATE
+)
+
+%sql
+CREATE OR REPLACE TEMPORARY VIEW infocredOct AS(
+  SELECT *
+  FROM db_analytics.ext_infocred
+  WHERE deltaPartition = "2021-10"
+)
+
+def convert_spark_pandas(
+    spark_df
+    ) -> pd.DataFrame():
+    '''
+    Esta funcion convierte los datos de tipo Decimal a tipo Float en un spark dataframe, antes de convertirla a un pandas dataframe, para evitar warnings
+    '''
+
+    # find all decimal columns in your SparkDF
+    decimals_cols = [c for c in spark_df.columns if "Decimal" in str(spark_df.schema[c].dataType)]
+
+    # convert all decimals columns to floats
+    for col in decimals_cols:
+        spark_df = spark_df.withColumn(col, spark_df[col].cast(FloatType()))
+    pandas_df = spark_df.toPandas()
+
+    return pandas_df
+	
+#Carga de asfi e infocred
+asfioct = convert_spark_pandas(spark.sql("SELECT * FROM asfiOct"))
+infocredoct = convert_spark_pandas(spark.sql("SELECT * FROM infocredOct"))
+
+asfivars = asfioct.merge(ent, how="left",
+                        left_on=["tipoEntidadFinanciera","corrEntidadFinanciera"],
+                        right_on=["CodTipoEntidad","NumCorrEntidad"]).drop(["CodTipoEntidad","NumCorrEntidad"], axis=1)
+asfivars["enBSO"] = np.where(asfivars["Sigla"]=="BSO",1,0)
+asfivars["enSF"] = np.where(asfivars["Sigla"]!="BSO",1,0)
+asfivars["calificacionEntidad"] = np.where(asfivars["calificacionEntidad"]=="NO DEFINIDO","_",asfivars["calificacionEntidad"])
+asfivars["calificacionEntidad"] = asfivars["calificacionEntidad"].astype("str")
+#asfivars = asfikey.assign(enBSO = np.whasfikey["Sigla"]=="BSO",
+#                          enSF = asfikey["Sigla"]!="BSO") 
+
+
+
+infocredvars = infocredoct.copy()
+infocredvars["regulado"] = np.where((infocredvars["siglaSbef"]=="NO DEFINIDO") | (infocredvars["siglaSbef"].isna()), 0, 1)
+infocredvars["sigla"] = np.where(infocredvars["regulado"]==1, infocredvars["siglaSbef"], infocredvars["siglaFr"])
+infocredvars["entidad"] = np.where(infocredvars["regulado"]==1, infocredvars["entidadSbef"], infocredvars["entidadFr"])
+infocredvars["tipoCredito"] = np.where(infocredvars["regulado"]==1, infocredvars["tipoCreditoSbef"], infocredvars["tipoCreditoFr"])
+infocredvars["calificacion"] = np.where(infocredvars["regulado"]==1, infocredvars["calificacionSbef"], infocredvars["calificacionFr"])
+infocredvars["calificacion"] = np.where(infocredvars["calificacion"]=="NO DEFINIDO", "_", infocredvars["calificacion"])
+infocredvars["calificacion"] = infocredvars["calificacion"].astype("str")
+infocredvars["tipoObligado"] = np.where(infocredvars["regulado"]==1, infocredvars["tipoObligadoSbef"], infocredvars["tipoObligadoFr"])
+infocredvars["saldoVigente"] = np.where(infocredvars["regulado"]==1, infocredvars["saldoVigenteSbef"], infocredvars["saldoVigenteFr"])
+infocredvars["saldoVencido"] = np.where(infocredvars["regulado"]==1, infocredvars["saldoVencidoSbef"], infocredvars["saldoVencidoFr"])
+infocredvars["saldoEjecucion"] = np.where(infocredvars["regulado"]==1, infocredvars["saldoEjecucionSbef"], infocredvars["saldoEjecucionFr"])
+infocredvars["saldoCastigado"] = np.where(infocredvars["regulado"]==1, infocredvars["saldoCastigadoSbef"], infocredvars["saldoCastigadoFr"])
+infocredvars["esDeudor"] = np.where(infocredvars["tipoObligado"].isin(["1A - DEUDOR", "4A - DEUDOR SOLIDARIO", "5A - DEUDOR A SOLA FIRMA", "6A - DEUDOR BANCA COMUNAL"]), 1, 0)
+infocredvars["esCodeudor"] = np.where(infocredvars["tipoObligado"].isin(["1B - CODEUDOR"]), 1, 0)
+infocredvars["esGarante"] = np.where(infocredvars["tipoObligado"].isin(["02 - GARANTE"]), 1, 0)
+infocredvars["enBSO"]  = np.where(infocredvars["sigla"] == "BSO", 1, 0)
+infocredvars["enSF"]  = np.where(infocredvars["sigla"] != "BSO", 1, 0)
+infocredvars["esDeudorCodeudor"] = np.where((infocredvars["esDeudor"]==1) | (infocredvars["esCodeudor"]==1), "Deudor", "Garante")
+infocredpivot = (
+    infocredvars.loc[infocredvars["regulado"]==1,:]
+    .groupby(["codPersona","sigla","esDeudorCodeudor"])
+    .agg(
+        saldoVigente = ("saldoVigente","sum"),
+        saldoVencido = ("saldoVencido","sum"),
+        saldoEjecucion = ("saldoEjecucion","sum"),
+        saldoCastigado = ("saldoCastigado","sum"),
+        calificacion = ("calificacion","max"),
+    )
+)
+
+infocredpv = (
+    pd.pivot_table(infocredpivot,
+                   values=["saldoVigente","saldoVencido","saldoEjecucion","saldoCastigado"],
+                   index=["codPersona","sigla"],
+                   columns="esDeudorCodeudor")
+    .reset_index()
+)
+infocredpv.columns = [''.join(col) for col in infocredpv.columns]
+
+infocal = infocredvars.loc[(infocredvars["esDeudorCodeudor"]=="Deudor") & (infocredvars["regulado"]==1),:].groupby(["codPersona","sigla"]).agg(calificacion=("calificacion","max")).reset_index()
+infocredpv = (
+    infocredpv
+    .merge(
+        infocal,
+        how="left",
+        on=["codPersona","sigla"]
+    )
+)
+
+
+persona = 2858660
+
+asfivars.loc[(asfivars["codPersona"]==persona) , ["codPersona", "Sigla","saldoVigente","saldoGarVigente","saldoVencido","saldoGarVencido","saldoEjecucion","saldoGarEjecucion","saldoCastigado","saldoGarCastigado","calificacionEntidad"]].sort_values(["saldoVigente","saldoGarVigente"])
+
+infocredpv.loc[infocredpv["codPersona"]==persona,:]
+
+asfivars_grouped = (
+    asfivars.groupby("codPersona")
+    .agg(
+        saldoVigente = ("saldoVigente","sum"),
+        saldoGarVigente = ("saldoGarVigente","sum"),
+        saldoVencido = ("saldoVencido","sum"),
+        saldoGarVencido = ("saldoGarVencido","sum"),
+        saldoEjecucion = ("saldoEjecucion","sum"),
+        saldoGarEjecucion = ("saldoGarEjecucion","sum"),
+        saldoCastigado = ("saldoCastigado","sum"),
+        saldoGarCastigado = ("saldoGarCastigado","sum"),
+        calificacion = ("calificacionEntidad","max"),
+    )
+)
+
+infocredpv["calificacion"] = infocredpv["calificacion"].astype("str")
+infocredpv_grouped = (
+    infocredpv.groupby("codPersona")
+    .agg(
+        saldoVigenteInf = ("saldoVigenteDeudor","sum"),
+        saldoGarVigenteInf = ("saldoVigenteGarante","sum"),
+        saldoVencidoInf = ("saldoVencidoDeudor","sum"),
+        saldoGarVencidoInf = ("saldoVencidoGarante","sum"),
+        saldoEjecucionInf = ("saldoEjecucionDeudor","sum"),
+        saldoGarEjecucionInf = ("saldoEjecucionGarante","sum"),
+        saldoCastigadoInf = ("saldoCastigadoDeudor","sum"),
+        saldoGarCastigadoInf = ("saldoCastigadoGarante","sum"),
+        calificacionInf = ("calificacion","max"),
+    )
+)
+
+asfi_info_join = (
+    infocredpv_grouped
+    .merge(
+        asfivars_grouped,
+        how="left",
+        on="codPersona"
+    )
+).assign(
+    checkSaldoGar = lambda x: np.where(np.abs(x["saldoGarVigente"]-x["saldoGarVigenteInf"])> 0.5, 1, 0),
+    checkCalif = lambda x: x["calificacionInf"]==x["calificacion"]
+).reset_index()
+#asfi_info_join
+asfi_info_join.groupby("checkSaldoGar")["codPersona"].count()

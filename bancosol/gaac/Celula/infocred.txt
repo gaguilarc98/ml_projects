@@ -1,0 +1,405 @@
+import pandas as pd
+import numpy as np
+
+from pandas.tseries.offsets import MonthEnd
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta as rd
+
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import last_day, add_months, col, concat, to_date, lit
+from pyspark.sql.types import FloatType
+from sklearn.impute import SimpleImputer
+#import pendulum as pdl
+
+def filter_and_load_infocred(
+    data_pob_obj,
+    data_hist_full,
+    ):
+
+    data_pob_obj = data_pob_obj.select(
+        "codmesCosecha",
+        "firstDayPreviousCosecha",
+        "lastDayPreviousCosecha",
+        "codPersona",
+        "operacion",
+    )
+
+    df_hist_full_f = data_pob_obj.join(
+        data_hist_full,
+        on=[
+            data_pob_obj.codPersona == data_hist_full.codPersona,
+            to_date(concat(data_hist_full.deltaPartition, lit('-01')),'yyyy-MM-dd') >= add_months(data_pob_obj.firstDayPreviousCosecha, -12),
+            to_date(concat(data_hist_full.deltaPartition, lit('-01')),'yyyy-MM-dd') <= add_months(data_pob_obj.firstDayPreviousCosecha, -1)
+        ],
+        how="inner",
+    ).drop(data_hist_full.codPersona)
+
+    for column in data_pob_obj.columns:
+        df_hist_full_f = df_hist_full_f.withColumnRenamed(column, column + "Orig")
+
+    df_pob_obj_pandas = convert_spark_pandas(data_pob_obj)
+    df_infocred_pandas = convert_spark_pandas(df_hist_full_f)
+    
+    return df_pob_obj_pandas, df_infocred_pandas
+
+def convert_spark_pandas(
+    spark_df
+    ) -> pd.DataFrame():
+    '''
+    Esta funcion convierte los datos de tipo Decimal a tipo Float en un spark dataframe, antes de convertirla a un pandas dataframe, para evitar warnings
+    '''
+
+    # find all decimal columns in your SparkDF
+    decimals_cols = [c for c in spark_df.columns if "Decimal" in str(spark_df.schema[c].dataType)]
+
+    # convert all decimals columns to floats
+    for col in decimals_cols:
+        spark_df = spark_df.withColumn(col, spark_df[col].cast(FloatType()))
+    pandas_df = spark_df.toPandas()
+
+    return pandas_df
+
+def rename_pob_obj(df) -> pd.DataFrame():
+
+    df = df.rename(
+        columns={
+            "codmesCosecha": "codmesCosechaOrig",
+            "codPersona": "codPersonaOrig",
+            "operacion": "operacionOrig",
+            "lastDayPreviousCosecha": "lastDayPreviousCosechaOrig",
+        }
+    ).copy()
+
+    return df
+
+def pre_process_infocred(
+    df_hist_infocred):
+    '''
+    Creacion de campos adicionales o transformaciones de estos, para la data de Infocred
+    '''
+    df_hist_infocred_t = df_hist_infocred.copy()
+    df_hist_infocred_t["regulado"] = np.where((df_hist_infocred_t["siglaSbef"]=="NO DEFINIDO") | (df_hist_infocred_t["siglaSbef"].isna()), 0, 1)
+
+    df_hist_infocred_t["sigla"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["siglaSbef"], df_hist_infocred_t["siglaFr"])
+    
+    df_hist_infocred_t["entidad"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["entidadSbef"], df_hist_infocred_t["entidadFr"])
+    
+    df_hist_infocred_t["tipoCredito"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["tipoCreditoSbef"], df_hist_infocred_t["tipoCreditoFr"])
+
+    df_hist_infocred_t["calificacion"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["calificacionSbef"], df_hist_infocred_t["calificacionFr"])
+
+    df_hist_infocred_t["tipoObligado"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["tipoObligadoSbef"], df_hist_infocred_t["tipoObligadoFr"])
+
+    df_hist_infocred_t["saldoVigente"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["saldoVigenteSbef"], df_hist_infocred_t["saldoVigenteFr"])
+
+    df_hist_infocred_t["saldoVencido"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["saldoVencidoSbef"], df_hist_infocred_t["saldoVencidoFr"])
+
+    df_hist_infocred_t["saldoEjecucion"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["saldoEjecucionSbef"], df_hist_infocred_t["saldoEjecucionFr"])
+
+    df_hist_infocred_t["saldoCastigado"] = np.where(df_hist_infocred_t["regulado"]==1, df_hist_infocred_t["saldoCastigadoSbef"], df_hist_infocred_t["saldoCastigadoFr"])
+
+    df_hist_infocred_t["saldo"] = df_hist_infocred_t["saldoVigente"] + df_hist_infocred_t["saldoVencido"] + df_hist_infocred_t["saldoEjecucion"]
+
+    df_hist_infocred_t["saldoMoraCast"] = df_hist_infocred_t["saldoVencido"]+ df_hist_infocred_t["saldoEjecucion"]+ df_hist_infocred_t["saldoCastigado"]
+
+    #Fill NaNs
+    list_columns_nans = ["sigla","entidad","tipoObligado","tipoCredito"]
+    df_hist_infocred_t[list_columns_nans] = df_hist_infocred_t[list_columns_nans].fillna("NO IDENTIFICADO")
+    df_hist_infocred_t["calificacion"] = np.where((df_hist_infocred_t["calificacion"].isna()) | (df_hist_infocred_t["calificacion"]=="NO DEFINIDO"), "_", df_hist_infocred_t["calificacion"])
+
+    list_deudor = ["1A - DEUDOR", "4A - DEUDOR SOLIDARIO", "5A - DEUDOR A SOLA FIRMA", "6A - DEUDOR BANCA COMUNAL"]
+    list_codeudor = ["1B - CODEUDOR"]
+    list_garante = ["02 - GARANTE"]
+
+    #Flags de tipo obligado
+    df_hist_infocred_t["esDeudor"] = np.where(df_hist_infocred_t["tipoObligado"].isin(list_deudor), 1, 0)
+    df_hist_infocred_t["esCodeudor"] = np.where(df_hist_infocred_t["tipoObligado"].isin(list_codeudor), 1, 0)
+    df_hist_infocred_t["esGarante"] = np.where(df_hist_infocred_t["tipoObligado"].isin(list_garante), 1, 0)
+    #Flags de BSO y SF
+    df_hist_infocred_t["enBSO"] = np.where(df_hist_infocred_t["sigla"]=="BSO", 1, 0)
+    df_hist_infocred_t["enSF"] = np.where(df_hist_infocred_t["sigla"]=="BSO", 0, 1)
+    #Flag de deuda en BSO y SF
+    df_hist_infocred_t["esDeudaBSO"] = df_hist_infocred_t["esDeudor"]*df_hist_infocred_t["enBSO"]
+    df_hist_infocred_t["esDeudaSF"] = df_hist_infocred_t["esDeudor"]*df_hist_infocred_t["enSF"]
+    #Flag de deudor en BSO
+    df_hist_infocred_t["esDeudorBSO"] = (
+        df_hist_infocred_t.groupby(["codPersonaOrig", "deltaPartition"])["esDeudaBSO"]
+        .transform("max")
+    )
+    #Flag de deudor en SF
+    df_hist_infocred_t["esDeudorSF"] = (
+        df_hist_infocred_t.groupby(["codPersonaOrig", "deltaPartition"])["esDeudaSF"]
+        .transform("max")
+    )
+    #Flag de deudor - deudor
+    df_hist_infocred_t["esDeudorDeudor"] = df_hist_infocred_t["esDeudorBSO"]*df_hist_infocred_t["esDeudorSF"]
+
+    #Fechas
+    df_hist_infocred_t["fechaInicioInfocred"] = pd.to_datetime(df_hist_infocred_t["deltaPartition"] + "-01", format="%Y-%m-%d")
+
+    df_hist_infocred_t["fechaFinInfocred"] = df_hist_infocred_t["fechaInicioInfocred"] + MonthEnd(0)
+
+    df_hist_infocred_t["difMeses"] = (
+        (
+            df_hist_infocred_t["firstDayPreviousCosechaOrig"].dt.year
+            - df_hist_infocred_t["fechaInicioInfocred"].dt.year
+        )
+        * 12
+        + (
+            df_hist_infocred_t["firstDayPreviousCosechaOrig"].dt.month
+            - df_hist_infocred_t["fechaInicioInfocred"].dt.month
+        )
+    )
+
+    #Contador de histórico
+    df_hist_infocred_t["historico"] = df_hist_infocred_t["historico"].astype(str)
+    df_hist_infocred_t["historico16"] = df_hist_infocred_t["historico"].str[:16]
+    df_hist_infocred_t["cantHistorico"] = df_hist_infocred_t["historico16"].str.count("1|2|3|4")
+    df_hist_infocred_t["cantHistoricoMora"] = df_hist_infocred_t["historico16"].str.count("2|3|4")
+    df_hist_infocred_t["ratioHistMora"] = np.where(df_hist_infocred_t["cantHistorico"]==0,0,df_hist_infocred_t["cantHistoricoMora"]/df_hist_infocred_t["cantHistorico"])
+
+    #Ratio de saldo sobre monto
+    df_hist_infocred_t["ratioSaldoMonto"] = np.where(df_hist_infocred_t["montoOriginal"]<df_hist_infocred_t["saldo"], 1, df_hist_infocred_t["saldo"]/df_hist_infocred_t["montoOriginal"])
+
+    #Codigo tipo credito
+    df_hist_infocred_t["codTipoCredito"] = df_hist_infocred_t["tipoCredito"].str[:2]
+
+    gar_hip = ["H0","H2","H3"]
+    deb_gar = ["C2","H0","H2","H3","M1","M2","M4","M6","M8","M9","N1","N2","P3","P4","P6"]
+    #Agrupaciones de credito
+    df_hist_infocred_t["credGarantiaHipotecaria"] = df_hist_infocred_t["codTipoCredito"].isin(gar_hip)
+    df_hist_infocred_t["credDebGarantizado"] = df_hist_infocred_t["codTipoCredito"].isin(deb_gar)
+
+    #Credito en entidades financieras con evaluaciones similares
+    df_hist_infocred_t["credBun"] = df_hist_infocred_t["sigla"]=="BUN"
+    df_hist_infocred_t["credBcr"] = df_hist_infocred_t["sigla"]=="BCR"
+    df_hist_infocred_t["credBec"] = df_hist_infocred_t["sigla"]=="BEC"
+    df_hist_infocred_t["credBme"] = df_hist_infocred_t["sigla"]=="BME"
+    df_hist_infocred_t["credBga"] = df_hist_infocred_t["sigla"]=="BGA"
+    df_hist_infocred_t["credBnb"] = df_hist_infocred_t["sigla"]=="BNB"
+    df_hist_infocred_t["credBis"] = df_hist_infocred_t["sigla"]=="BIS"
+    df_hist_infocred_t["credBie"] = df_hist_infocred_t["sigla"]=="FIE"
+    df_hist_infocred_t["credBfo"] = df_hist_infocred_t["sigla"]=="FFO"
+    df_hist_infocred_t["credBpr"] = df_hist_infocred_t["sigla"]=="FPR"
+    df_hist_infocred_t["credBfs"] = df_hist_infocred_t["sigla"]=="FSL"
+
+    #Ultima aparicion
+    df_hist_infocred_t["rankUltAparicion"] = df_hist_infocred_t.groupby(
+        ["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]
+    )["difMeses"].rank(method="dense", ascending=True)
+    
+    return df_hist_infocred_t
+
+def features_infocred(
+    df_hist_infocred_p
+):
+    #Datos como deudor
+    df_hist_infocred_d = df_hist_infocred_p.loc[df_hist_infocred_p["esDeudaSF"]==1,:]
+    #Datos como codeudor
+    df_hist_infocred_c = df_hist_infocred_p.loc[(df_hist_infocred_p["esCodeudor"]==1) &(df_hist_infocred_p["enSF"]==1),:]
+    #Datos como garante
+    df_hist_infocred_g = df_hist_infocred_p.loc[(df_hist_infocred_p["esGarante"]==1) & (df_hist_infocred_p["enSF"]==1),:]
+    #Variables como deudor
+    df_hist_infocred_d = df_hist_infocred_d.groupby(
+        ["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]
+    ).agg(
+        numCreditosSf=("numeroOperacion","nunique"),
+        numEntidadesSf=("siglaSbef","nunique"),
+        promSaldoVigenteSf=("saldoVigente","mean"),
+        promSaldoVencidoSf=("saldoVencido","mean"),
+        promSaldoEjecucionSf=("saldoEjecucion","mean"),
+        promSaldoCastigadoSf=("saldoCastigado","mean"),
+        promSaldoContingenteSf=("saldoContingenteSbef","mean"),
+        promMontoSf = ("montoOriginal","mean"),
+        promRatioHistSf = ("ratioHistMora","mean"),
+        promRatioSaldoMontoSf = ("ratioSaldoMonto","mean"),
+        maxDiasMoraSf = ("diasMora","max"),
+        promDiasMoraSf = ("diasMora","mean"),
+        peorCalificacionSf = ("calificacion","max"),
+        tuvoCredGarHipSf = ("credGarantiaHipotecaria","max"),
+        tuvoCredDebGarSf = ("credDebGarantizado","max"),
+        tuvoCredBun = ("credBun","max"),
+        tuvoCredBcr = ("credBcr","max"),
+        tuvoCredBec = ("credBec","max"),
+        tuvoCredBme = ("credBme","max"),
+        tuvoCredBga = ("credBga","max"),
+        tuvoCredBnb = ("credBnb","max"),
+        tuvoCredBis = ("credBis","max"),
+        tuvoCredBie = ("credBie","max"),
+        tuvoCredBfo = ("credBfo","max"),
+        tuvoCredBpr = ("credBpr","max"),
+        tuvoCredBfs = ("credBfs","max"),
+    ).reset_index(
+    ).assign(
+        flagDeudorSf = lambda x: np.where(x["numCreditosSf"]>=1,1,0)
+    )
+    #Variables como codeudor
+    df_hist_infocred_c = df_hist_infocred_c.groupby(
+        ["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]
+    ).agg(
+        numCreditosCodeudorSf=("numeroOperacion","nunique"),
+        numEntidadesCodeudorSf=("siglaSbef","nunique"),
+        promSaldoCodeudorSf=("saldo","mean"),
+        promSaldoMoraCastCodeudorSf=("saldoMoraCast","mean"),
+        promMontoCodeudorSf = ("montoOriginal","mean"),
+        promRatioHistCodeudorSf = ("ratioHistMora","mean"),
+        promRatioSaldoMontoCodeudorSf = ("ratioSaldoMonto","mean"),
+        maxDiasMoraCodeudorSf = ("diasMora","max"),
+        promDiasMoraCodeudorSf = ("diasMora","mean"),
+        peorCalificacionCodeudorSf = ("calificacion","max"),
+    ).reset_index(
+    ).assign(
+        flagCodeudorSf = lambda x: np.where(x["numCreditosCodeudorSf"]>=1,1,0)
+    )
+    #Variables como garante
+    df_hist_infocred_g = df_hist_infocred_g.groupby(
+        ["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]
+    ).agg(
+        numCreditosGaranteSf=("numeroOperacion","nunique"),
+        numEntidadesGaranteSf=("siglaSbef","nunique"),
+        promSaldoGaranteSf=("saldo","mean"),
+        promSaldoMoraCastGaranteSf=("saldoMoraCast","mean"),
+        promMontoGaranteSf = ("montoOriginal","mean"),
+        promRatioHistGaranteSf = ("ratioHistMora","mean"),
+        promRatioSaldoMontoGaranteSf = ("ratioSaldoMonto","mean"),
+        maxDiasMoraGaranteSf = ("diasMora","max"),
+        promDiasMoraGaranteSf = ("diasMora","mean"),
+        peorCalificacionGaranteSf = ("calificacion","max"),
+    ).reset_index(
+    ).assign(
+        flagGaranteSf = lambda x: np.where(x["numCreditosGaranteSf"]>=1,1,0)
+    )
+
+    return df_hist_infocred_d, df_hist_infocred_c, df_hist_infocred_g
+	
+################################## INFOCRED #######################################
+
+def create_features_infocred(
+    data_pob_obj,
+    data_infocred,
+    params_infocred
+    )-> pd.DataFrame():
+
+    #Params
+    periodos=params_infocred["periodos"]
+
+    #Cargamos la data historica filtrada y en pandas
+    df_pob_obj, df_hist_infocred = filter_and_load_infocred(data_pob_obj, data_infocred)
+
+    #Cambiar nombres de llaves de pob obj con "Orig" para diferenciarlos
+    df_pob_obj = rename_pob_obj(df_pob_obj)
+
+    #return df_hist_infocred_t
+
+    df_pob_obj_id = df_pob_obj[["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]].copy()
+
+    #Paso 1: Pre procesamiento datos de Infocred
+    df_hist_infocred_t = pre_process_infocred(df_hist_infocred)
+
+    for periodo in periodos:
+        print(periodo)
+        df_hist_infocred_p = df_hist_infocred_t.loc[df_hist_infocred_t["difMeses"]<=periodo,:].copy()
+
+        df_hist_infocred_d, df_hist_infocred_c, df_hist_infocred_g = features_infocred(df_hist_infocred_p)
+        
+        #Unir info de los cientes como deudores, codeudores y garantes en SF
+        df_hist_sf = (
+            df_pob_obj[["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]]
+            .merge(
+                df_hist_infocred_d,
+                how="left",
+                on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+            )
+            .merge(
+                df_hist_infocred_c,
+                how="left",
+                on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+            )
+            .merge(
+                df_hist_infocred_g,
+                how="left",
+                on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+            )
+        )
+
+        #Renombrar las variables creadas por corte
+        cols = df_hist_sf.columns.to_list() #lista de columnas originales
+        cols_id = ["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"] #columnas de id
+        for c in cols_id: cols.remove(c) #remover las columnas id
+
+        cols_names = [s+"Ult"+str(periodo)+"m" for s in cols] #colocar sufijo a cols creadas
+        cols_dict = {cols[i]:cols_names[i] for i in range(len(cols))}#diccionario de nombres
+
+        df_hist_sf = df_hist_sf.rename(columns = cols_dict)
+
+        df_pob_obj_id = (
+            df_pob_obj_id
+            .merge(
+                df_hist_sf,
+                how="left",
+                on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+            )
+        )
+
+    #última historia disponible en infocred
+    df_hist_infocred_p = df_hist_infocred_t.loc[df_hist_infocred_t["rankUltAparicion"]==1,:].copy()
+
+    #Datos como deudor
+    df_hist_infocred_abs = df_hist_infocred_p.loc[df_hist_infocred_p["esDeudaSF"]==1,:]
+
+    df_hist_infocred_abs = df_hist_infocred_abs.groupby(
+        ["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]
+    ).agg(
+        saldoDeudorSf=("saldo","sum"),
+        saldoMoraDeudorSf=("saldoMoraCast","sum"),
+        montoDeudorSf = ("montoOriginal","sum"),
+    ).reset_index(
+    )
+
+    df_hist_infocred_d, df_hist_infocred_c, df_hist_infocred_g = features_infocred(df_hist_infocred_p)
+        
+    #Unir info de los cientes como deudores, codeudores y garantes en SF
+    df_hist_sf_ult = (
+        df_pob_obj[["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"]]
+        .merge(
+            df_hist_infocred_d,
+            how="left",
+            on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+        )
+        .merge(
+            df_hist_infocred_c,
+            how="left",
+            on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+        )
+        .merge(
+            df_hist_infocred_g,
+            how="left",
+            on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+        )
+        .merge(
+            df_hist_infocred_abs,
+            how="left",
+            on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+        )
+    )
+
+    #Renombrar las variables creadas por corte
+    cols = df_hist_sf_ult.columns.to_list() #lista de columnas originales
+    cols_id = ["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"] #columnas de id
+    for c in cols_id: cols.remove(c) #remover las columnas id
+
+    cols_names = [s+"UltDisp" for s in cols] #colocar sufijo a cols creadas
+    cols_dict = {cols[i]:cols_names[i] for i in range(len(cols))}#diccionario de nombres
+
+    df_hist_sf_ult = df_hist_sf_ult.rename(columns = cols_dict)
+    
+    df_pob_obj_id = (
+        df_pob_obj_id
+        .merge(
+            df_hist_sf_ult,
+            how="left",
+            on=["codmesCosechaOrig", "codPersonaOrig", "operacionOrig"],
+        )
+    )
+
+    return df_pob_obj_id
