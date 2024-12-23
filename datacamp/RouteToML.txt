@@ -1,0 +1,7 @@
+Repasar:
+ML04: Machine Learning in the Tidyverse
+ML07: Machine Learning with caret in R
+ML08: Modelling with tidymodels in R
+ML09: Machine Learning with Tree-Based Models in R
+ML13: Hyperparameter Tuning in R
+ML15: Introduction to Spark with sparklyr in R

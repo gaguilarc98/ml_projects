@@ -1,0 +1,50 @@
+---
+params:
+  specie: "setosa"
+title: "Hola `r params$specie`"
+author: "Aguilar"
+date: '2022-12-03'
+output: 
+  pdf_document:
+    number_sections: true
+header-includes:
+  - \usepackage{longtable}
+  - \usepackage{booktabs}
+  - \usepackage{multirow}
+---
+
+# Fisrt section
+
+## First subsection
+
+## Second dubsection
+
+# Second section
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+dat <- iris
+dat <- dat %>% 
+  dplyr::filter(Species==params$specie)
+```
+
+\fontsize{16}{22}
+\selectfont
+
+# Título
+## Subtítulo
+
+Este es un ejemplo de texto en un documento RMarkdown.
+La idea  es verificar lo siguiente:
+
+* Si se puede incrementar el tamaño de letra.
+* Si aún recuerdo como poner título y subtítulo.
+
+```{r echo=FALSE}
+kable(dat,longtable=TRUE,format = "latex",booktabs=TRUE,linesep="") %>% 
+  kable_styling(latex_options = "repeat_header",
+                repeat_header_text="\\textit{(continuación)}")
+```
+

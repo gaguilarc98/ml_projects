@@ -1,0 +1,88 @@
+---
+title: "Reporte Matrices de Transición"
+author: "Jefatura Nacional de Analítica de Riesgos"
+date: "`r Sys.Date()`"
+header-includes:
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{xcolor}
+output: pdf_document
+classoption: a3paper
+fontsize: 11pt
+geometry: margin=0.25in
+---
+
+```{r setup, include=FALSE, echo= FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo=FALSE,warning = FALSE,message = FALSE)
+#install rtools42
+#miktex console always install
+#tinytex::install_tinytex()
+remove(list = ls())
+gc()
+options("encoding" = "UTF-8")
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+library(readxl)
+library(stringr)    # Working with strings
+library(forcats)    # Working with factors/categorical data
+library(scales)
+library(ggplot2)
+library(gt)
+library(knitr)
+library(kableExtra)
+```
+
+```{r echo=FALSE}
+dat <- swiss %>% 
+  mutate(categ = case_when(Education>0 &Education <3~1,
+                           Education>=3&Education <6~2,
+                           Education>=6&Education <12~3,
+                           TRUE~4))
+
+```
+
+# Matriz de probabilidades de transición y subtotales
+
+* Matriz de probabilidades de transición y probabilidades acumuladas
+
+```{=latex}
+\begin{minipage}[t]{0.65\textwidth}
+```
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+paleta <- colorRampPalette(c("slateblue3","slateblue4","tan3","orange3"),bias=1.5)
+dat %>% 
+  group_by(categ) %>% 
+  rowwise() %>% 
+  mutate(Total=round(sum(c_across(where(is.numeric))),0))%>% 
+  kable(longtable=TRUE,format="latex",booktabs=TRUE) %>%
+  kable_styling(font_size = 8,position = "left") %>% 
+  add_header_above(c(" "=1,"Destino"=6," "=1)) %>% 
+  column_spec(c(1,4),background = ifelse(dat$Agriculture>60,paleta(6)[6],paleta(6)[1]))
+  # gt(rowname_col = "cm1",groupname_col = "monDate",auto_align = T) %>%
+  # tab_options(row_group.as_column = T,row_group.padding = px(1500)) %>%
+  # tab_spanner(label = "Destino",columns = c('A','B','C','D','E','F','S','Z')) %>%
+  # opt_stylize(style = 3,color = "pink") %>% 
+  # tab_options(.,container.width = 400)
+```
+
+```{=latex}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.3\textwidth}
+```
+
+```{r echo=FALSE, message=FALSE}
+dat %>% 
+  select(Fertility, Agriculture,categ) %>% 
+  kable(longtable=TRUE,format="latex",booktabs=TRUE) %>%
+  kable_styling(font_size = 8,position = "right") %>% 
+  column_spec(1,bold = T,color = "red")
+  # gt(groupname_col = "monDate") %>% 
+  # tab_options(row_group.as_column = T,row_group.padding = px(1500)) %>% 
+  # opt_stylize(style=3,color="pink")
+```
+
+```{=latex}
+\end{minipage}
+```
